@@ -1,0 +1,32 @@
+from pydantic import ValidationError
+from magic_items.models import MagicItem
+from magic_items.enums import ItemType, Duration, BodySlot
+
+def test_bonus_item_ok():
+    item = MagicItem(item_type=ItemType.BONUS_CAR, bonus=2)
+    assert item.bonus == 2
+
+def test_bonus_item_fail():
+    try:
+        MagicItem(item_type=ItemType.BONUS_CAR)
+        assert False
+    except ValidationError:
+        assert True
+
+def test_scroll_ok():
+    item = MagicItem(item_type=ItemType.SCROLL, liv_spell=1, liv_caster=3)
+    assert item.liv_spell == 1
+
+def test_scroll_fail_with_bonus():
+    try:
+        MagicItem(item_type=ItemType.SCROLL, liv_spell=1, liv_caster=3, bonus=5)
+        assert False
+    except ValidationError:
+        assert True
+
+def test_use_conflict_charges():
+    try:
+        MagicItem(item_type=ItemType.USE, liv_spell=1, liv_caster=1, daily_charges=1, fifty_charges=True)
+        assert False
+    except ValidationError:
+        assert True
