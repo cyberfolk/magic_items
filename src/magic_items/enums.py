@@ -2,9 +2,10 @@ from enum import Enum
 
 
 class ItemType(str, Enum):
-    BONUS_CAR = "bonus_caratteristica"
-    BONUS_ARM = "bonus_armatura"
-    BONUS_DEV = "bonus_ca_deviazione"
+    BONUS_STATS = "bonus_caratteristica"
+    BONUS_ARMOR = "bonus_armatura"
+    BONUS_CA_DEV = "bonus_ca_deviazione"
+    BONUS_CA_ALTRO = "bonus_ca_altro"
     SCROLL = "scroll"
     POTION = "potion"
     WAND = "wand"
@@ -13,9 +14,10 @@ class ItemType(str, Enum):
     @property
     def label(self):
         return {
-            "bonus_caratteristica": "Bonus Caratteristica",
+            "bonus_caratteristica": "Bonus di Caratteristica (Potenziamento)",
+            "bonus_armatura": "Bonus Armatura (Potenziamento)",
             "bonus_ca_deviazione": "Bonus CA (Deviazione)",
-            "bonus_armatura": "Bonus Armatura",
+            "bonus_ca_altro": "Bonus CA (Altro)",
             "use_activated": "Oggetto Attivato ad uso",
             "scroll": "Pergamena",
             "potion": "Pozione",

@@ -7,7 +7,7 @@ from .enums import ItemType, Duration, BodySlot, UsageMode
 class MagicItem(BaseModel):
     item_type: ItemType = Field(..., title="Tipo Oggetto")
 
-    bonus: Optional[int] = Field(None, title="Bonus Caratteristica")
+    bonus: Optional[int] = Field(None, title="Bonus")
     liv_spell: Optional[int] = Field(None, title="Livello Incantesimo")
     liv_caster: Optional[int] = Field(None, title="Livello Incantatore")
     daily_charges: Optional[int] = Field(None, title="Cariche Giornaliere")
@@ -21,21 +21,21 @@ class MagicItem(BaseModel):
     def validate_logic(self):
         t = self.item_type
 
-        if t in {ItemType.BONUS_CAR}:
+        if t in {ItemType.BONUS_STATS}:
             if self.bonus is None or self.bonus not in (2, 4, 6):
-                raise ValueError(f"Il {ItemType.BONUS_CAR.label} può essere solo 2, 4 o 6")
+                raise ValueError(f"Il {ItemType.BONUS_STATS.label} può essere solo 2, 4 o 6")
             for f in ["liv_spell", "liv_caster", "duration", "usage_mode"]:  # body_slot visibile
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f.label} deve essere vuoto")
 
-        if t in {ItemType.BONUS_DEV}:
+        if t in {ItemType.BONUS_CA_DEV}:
             if self.bonus is None or self.bonus < 1 or self.bonus > 5:
                 raise ValueError("Il Bonus deve essere tra 1 e 5")
             for f in ["liv_spell", "liv_caster", "duration", "usage_mode"]:  # body_slot visibile
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f.label} deve essere vuoto")
 
-        if t in {ItemType.BONUS_ARM}:
+        if t in {ItemType.BONUS_ARMOR}:
             if self.bonus is None or self.bonus < 1 or self.bonus > 5:
                 raise ValueError("Il Bonus deve essere tra 1 e 5")
             for f in ["liv_spell", "liv_caster", "duration", "usage_mode", "body_slot"]:
@@ -79,14 +79,26 @@ class MagicItem(BaseModel):
     def name(self) -> str:
         t = self.item_type
 
-        if t == ItemType.BONUS_CAR:
-            return f"Oggetto Caratteristica +{self.bonus}"
+        if t == ItemType.BONUS_STATS:
+            name = f"{ItemType.BONUS_STATS.label} +{self.bonus}"
+            if self.body_slot != BodySlot.CORRECT:
+                name += f" | Slot Corporeo {self.body_slot.label}"
+            return name
 
-        if t == ItemType.BONUS_ARM:
+        if t == ItemType.BONUS_ARMOR:
             return f"Armatura +{self.bonus}"
 
-        if t == ItemType.BONUS_DEV:
-            return f"Oggetto +{self.bonus} CA (Deviazione)"
+        if t == ItemType.BONUS_CA_DEV:
+            name = f"Oggetto +{self.bonus} CA (Deviazione)"
+            if self.body_slot != BodySlot.CORRECT:
+                name += f" | Slot Corporeo {self.body_slot.label}"
+            return name
+
+        if t == ItemType.BONUS_CA_ALTRO:
+            name = f"Oggetto +{self.bonus} CA (Altro)"
+            if self.body_slot != BodySlot.CORRECT:
+                name += f" | Slot Corporeo {self.body_slot.label}"
+            return name
 
         if t == ItemType.SCROLL:
             return f"Pergamena di {self.liv_spell}° Livello (LI {self.liv_caster})"
@@ -111,41 +123,66 @@ class MagicItem(BaseModel):
 
         return t.label
 
-    # @computed_field
-    # @property
-    # def price(self) -> int:
-    #     t = self.item_type
+    @computed_field
+    @property
+    def price(self) -> float:
+        t = self.item_type
 
-    # # bonus items formula: bonus^2 * cost
-    # if t == ItemType.BONUS_CAR or t == ItemType.BONUS_ARM:
-    #     return (self.bonus ** 2) * 1000
-    # if t == ItemType.BONUS_DEV:
-    #     return (self.bonus ** 2) * 2000
-    #
-    # # scroll
-    # if t == ItemType.SCROLL:
-    #     return self.liv_spell * self.liv_caster * 25
-    #
-    # # potion
-    # if t == ItemType.POTION:
-    #     return self.liv_spell * self.liv_caster * 50
-    #
-    # # wand (50 charges)
-    # if t == ItemType.WAND:
-    #     return self.liv_spell * self.liv_caster * 750
-    #
-    # # use activated
-    # if t == ItemType.USE:
-    #     base = self.liv_spell * self.liv_caster * 2000
-    #     if self.fifty_charges:
-    #         return base // 2
-    #     if self.daily_charges:
-    #         # divide per (5 / charges_per_day)
-    #         # DMG rule: dividi per (5 / cariche)
-    #         return int(base / (5 / self.daily_charges))
-    #     return base
+        price = 0
 
-    # return 0
+        if t in ItemType.BONUS_STATS:
+            price = (self.bonus ** 2) * 1000
+            if self.body_slot == BodySlot.UNUSUAL:
+                price *= 1.5
+            elif self.body_slot == BodySlot.NO:
+                price *= 2
+            return price
+
+
+        if t == ItemType.BONUS_ARMOR:
+            price = (self.bonus ** 2) * 1000
+
+        if t in ItemType.BONUS_CA_DEV:
+            price = (self.bonus ** 2) * 2000
+            if self.body_slot == BodySlot.UNUSUAL:
+                price *= 1.5
+            elif self.body_slot == BodySlot.NO:
+                price *= 2
+            return price
+
+        if t in ItemType.BONUS_CA_ALTRO:
+            price = (self.bonus ** 2) * 2500
+            if self.body_slot == BodySlot.UNUSUAL:
+                price *= 1.5
+            elif self.body_slot == BodySlot.NO:
+                price *= 2
+            return price
+
+
+        # # scroll
+        # if t == ItemType.SCROLL:
+        #     return self.liv_spell * self.liv_caster * 25
+        #
+        # # potion
+        # if t == ItemType.POTION:
+        #     return self.liv_spell * self.liv_caster * 50
+        #
+        # # wand (50 charges)
+        # if t == ItemType.WAND:
+        #     return self.liv_spell * self.liv_caster * 750
+        #
+        # # use activated
+        # if t == ItemType.USE:
+        #     base = self.liv_spell * self.liv_caster * 2000
+        #     if self.fifty_charges:
+        #         return base // 2
+        #     if self.daily_charges:
+        #         # divide per (5 / charges_per_day)
+        #         # DMG rule: dividi per (5 / cariche)
+        #         return int(base / (5 / self.daily_charges))
+        #     return base
+
+        return price
 
 # Se un oggetto continuo
 #   ha un effetto basato su di un incantesimo

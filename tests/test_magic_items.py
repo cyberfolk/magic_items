@@ -3,12 +3,12 @@ from magic_items.models import MagicItem
 from magic_items.enums import ItemType, Duration, BodySlot
 
 def test_bonus_item_ok():
-    item = MagicItem(item_type=ItemType.BONUS_CAR, bonus=2)
+    item = MagicItem(item_type=ItemType.BONUS_STATS, bonus=2)
     assert item.bonus == 2
 
 def test_bonus_item_fail():
     try:
-        MagicItem(item_type=ItemType.BONUS_CAR)
+        MagicItem(item_type=ItemType.BONUS_STATS)
         assert False
     except ValidationError:
         assert True

@@ -15,16 +15,20 @@ item_type = st.selectbox(
 fs = {}  # fields
 
 # campi dinamici
-if item_type == ItemType.BONUS_CAR:
+if item_type == ItemType.BONUS_STATS:
     fs["bonus"] = st.number_input("Bonus", step=1, value=2, min_value=2, max_value=6)
     fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
 
-if item_type == ItemType.BONUS_DEV:
+if item_type == ItemType.BONUS_ARMOR:
+    fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
+
+if item_type == ItemType.BONUS_CA_DEV:
     fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
     fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
 
-if item_type == ItemType.BONUS_ARM:
+if item_type == ItemType.BONUS_CA_ALTRO:
     fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
+    fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
 
 if item_type in {ItemType.SCROLL, ItemType.POTION, ItemType.WAND, ItemType.USE}:
     col1, col2 = st.columns(2)
@@ -52,7 +56,7 @@ if st.button("Crea"):
         st.success("Creato")
 
         st.write(f"**Nome:** {item.name}")
-        # st.write(f"**Prezzo:** {item.price} mo")
+        st.write(f"**Prezzo:** {item.price} mo")
 
         st.json(item.model_dump())
     except ValidationError as e:
