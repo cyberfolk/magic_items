@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class ItemType(str, Enum):
     BONUS_CAR = "bonus_caratteristica"
     BONUS_ARM = "bonus_armatura"
@@ -15,7 +16,7 @@ class ItemType(str, Enum):
             "bonus_caratteristica": "Bonus Caratteristica",
             "bonus_ca_deviazione": "Bonus CA (Deviazione)",
             "bonus_armatura": "Bonus Armatura",
-            "use_activated": "Oggetto Attivabile",
+            "use_activated": "Oggetto Attivato ad uso",
             "scroll": "Pergamena",
             "potion": "Pozione",
             "wand": "Bacchetta",
@@ -49,4 +50,18 @@ class BodySlot(str, Enum):
             "correct": "Compatibile",
             "unusual": "Insolito",
             "no": "Nessuno",
+        }[self.value]
+
+
+class UsageMode(str, Enum):
+    FIFTY_CHARGES = "fifty_charges"
+    DAILY_CHARGES = "daily_charges"
+    CONTINUOUS = "continuous"
+
+    @property
+    def label(self):
+        return {
+            "fifty_charges": "50 Cariche",
+            "daily_charges": "Cariche Giornaliere",
+            "continuous": "Effetto Continuo",
         }[self.value]

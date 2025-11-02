@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field, model_validator, computed_field
 
-from .enums import ItemType, Duration, BodySlot
+from .enums import ItemType, Duration, BodySlot, UsageMode
 
 
 class MagicItem(BaseModel):
@@ -10,10 +10,12 @@ class MagicItem(BaseModel):
     bonus: Optional[int] = Field(None, title="Bonus Caratteristica")
     liv_spell: Optional[int] = Field(None, title="Livello Incantesimo")
     liv_caster: Optional[int] = Field(None, title="Livello Incantatore")
-    duration: Optional[Duration] = Field(None, title="Durata")
     daily_charges: Optional[int] = Field(None, title="Cariche Giornaliere")
     body_slot: Optional[BodySlot] = Field(None, title="Slot Corporeo")
     fifty_charges: Optional[bool] = Field(None, title="50 Cariche")
+
+    usage_mode: Optional[UsageMode] = Field(None, title="Modalità d'Uso")
+    duration: Optional[Duration] = Field(None, title="Durata Incantesimo Originale")
 
     @model_validator(mode="after")
     def validate_logic(self):
@@ -22,32 +24,30 @@ class MagicItem(BaseModel):
         if t in {ItemType.BONUS_CAR}:
             if self.bonus is None or self.bonus not in (2, 4, 6):
                 raise ValueError(f"Il {ItemType.BONUS_CAR.label} può essere solo 2, 4 o 6")
-            for f in ["liv_spell", "liv_caster", "duration", "daily_charges", "fifty_charges"]:  # body_slot visibile
+            for f in ["liv_spell", "liv_caster", "duration", "usage_mode"]:  # body_slot visibile
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f.label} deve essere vuoto")
 
         if t in {ItemType.BONUS_DEV}:
             if self.bonus is None or self.bonus < 1 or self.bonus > 5:
                 raise ValueError("Il Bonus deve essere tra 1 e 5")
-            for f in ["liv_spell", "liv_caster", "duration", "daily_charges", "fifty_charges"]:  # body_slot visibile
+            for f in ["liv_spell", "liv_caster", "duration", "usage_mode"]:  # body_slot visibile
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f.label} deve essere vuoto")
 
         if t in {ItemType.BONUS_ARM}:
             if self.bonus is None or self.bonus < 1 or self.bonus > 5:
                 raise ValueError("Il Bonus deve essere tra 1 e 5")
-            for f in ["liv_spell", "liv_caster", "duration", "daily_charges", "body_slot", "fifty_charges"]:
+            for f in ["liv_spell", "liv_caster", "duration", "usage_mode", "body_slot"]:
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f.label} deve essere vuoto")
 
         if t in {ItemType.SCROLL, ItemType.POTION, ItemType.WAND}:
-            if self.bonus not in [None, False]:
-                raise ValueError("Bonus deve essere vuoto")
             if self.liv_spell is None or self.liv_spell < 1 or self.liv_spell > 9:
                 raise ValueError("Livello Incantesimo deve essere tra 1 e 9")
             if self.liv_caster is None or self.liv_caster < 1 or self.liv_caster > 20:
                 raise ValueError("Livello Incantatore deve essere tra 1 e 20")
-            for f in ["duration", "daily_charges", "body_slot", "fifty_charges"]:
+            for f in ["bonus", "duration", "usage_mode", "body_slot"]:
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f} deve essere vuoto")
 
@@ -58,8 +58,17 @@ class MagicItem(BaseModel):
                 raise ValueError("Livello Incantesimo deve essere tra 1 e 9")
             if self.liv_caster is None or self.liv_caster < 1 or self.liv_caster > 20:
                 raise ValueError("Livello Incantatore deve essere tra 1 e 20")
-            if self.daily_charges and self.fifty_charges:
-                raise ValueError("Impossibile selezionare sia '50 cariche' che 'cariche giornaliere'")
+            if self.usage_mode in [None, False]:
+                raise ValueError("Modalità d'Uso deve essere compilato")
+            elif self.usage_mode == UsageMode.DAILY_CHARGES:
+                if self.daily_charges in [None, False]:
+                    raise ValueError("Specificare il Numero di Cariche Giornaliere")
+            elif self.usage_mode == UsageMode.CONTINUOUS:
+                if self.duration in [None, False]:
+                    raise ValueError(
+                        "Specificare la durata originale dell'incantesimo per gli Oggetti a Effetto Continuo")
+            # elif self.usage_mode == UsageMode.FIFTY_CHARGES:
+            #     Questo caso è OK non necessita alcun campo ulteriore
 
         return self
 
@@ -89,13 +98,15 @@ class MagicItem(BaseModel):
             return f"Bacchetta di {self.liv_spell}° Livello (LI {self.liv_caster})"
 
         if t == ItemType.USE:
-            name = f"Oggetto con Incantesimo di {self.liv_spell}° Livello (LI {self.liv_caster})"
-            if self.fifty_charges:
-                name += f", 50 cariche"
-            if self.daily_charges:
-                name += f", {self.daily_charges} usi giornalieri"
+            name = f"Oggetto Attivato ad uso | Incantesimo di {self.liv_spell}° Livello (LI {self.liv_caster})"
+            if self.usage_mode == UsageMode.FIFTY_CHARGES:
+                name += f" | 50 cariche"
+            if self.usage_mode == UsageMode.DAILY_CHARGES:
+                name += f" | Usi giornalieri {self.daily_charges}"
+            if self.usage_mode == UsageMode.CONTINUOUS:
+                name += f" | Effetto Continuo (Durata originale {self.duration.label})"
             if self.body_slot != BodySlot.CORRECT:
-                name += f", Slot Corporeo {self.body_slot}"
+                name += f" | Slot Corporeo {self.body_slot.label}"
             return name
 
         return t.label
@@ -105,36 +116,36 @@ class MagicItem(BaseModel):
     # def price(self) -> int:
     #     t = self.item_type
 
-        # # bonus items formula: bonus^2 * cost
-        # if t == ItemType.BONUS_CAR or t == ItemType.BONUS_ARM:
-        #     return (self.bonus ** 2) * 1000
-        # if t == ItemType.BONUS_DEV:
-        #     return (self.bonus ** 2) * 2000
-        #
-        # # scroll
-        # if t == ItemType.SCROLL:
-        #     return self.liv_spell * self.liv_caster * 25
-        #
-        # # potion
-        # if t == ItemType.POTION:
-        #     return self.liv_spell * self.liv_caster * 50
-        #
-        # # wand (50 charges)
-        # if t == ItemType.WAND:
-        #     return self.liv_spell * self.liv_caster * 750
-        #
-        # # use activated
-        # if t == ItemType.USE:
-        #     base = self.liv_spell * self.liv_caster * 2000
-        #     if self.fifty_charges:
-        #         return base // 2
-        #     if self.daily_charges:
-        #         # divide per (5 / charges_per_day)
-        #         # DMG rule: dividi per (5 / cariche)
-        #         return int(base / (5 / self.daily_charges))
-        #     return base
+    # # bonus items formula: bonus^2 * cost
+    # if t == ItemType.BONUS_CAR or t == ItemType.BONUS_ARM:
+    #     return (self.bonus ** 2) * 1000
+    # if t == ItemType.BONUS_DEV:
+    #     return (self.bonus ** 2) * 2000
+    #
+    # # scroll
+    # if t == ItemType.SCROLL:
+    #     return self.liv_spell * self.liv_caster * 25
+    #
+    # # potion
+    # if t == ItemType.POTION:
+    #     return self.liv_spell * self.liv_caster * 50
+    #
+    # # wand (50 charges)
+    # if t == ItemType.WAND:
+    #     return self.liv_spell * self.liv_caster * 750
+    #
+    # # use activated
+    # if t == ItemType.USE:
+    #     base = self.liv_spell * self.liv_caster * 2000
+    #     if self.fifty_charges:
+    #         return base // 2
+    #     if self.daily_charges:
+    #         # divide per (5 / charges_per_day)
+    #         # DMG rule: dividi per (5 / cariche)
+    #         return int(base / (5 / self.daily_charges))
+    #     return base
 
-        # return 0
+    # return 0
 
 # Se un oggetto continuo
 #   ha un effetto basato su di un incantesimo
