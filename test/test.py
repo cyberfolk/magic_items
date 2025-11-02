@@ -43,10 +43,8 @@ def test_modificatori_speciali():
     obj1 = {"tipo": "use_activated", "liv_spell": 5, "liv_caster": 9, "mods": [{"tipo": "slot", "t_slot": "unusual"}]}
     obj2 = {"tipo": "use_activated", "liv_spell": 5, "liv_caster": 9, "mods": [{"tipo": "slot", "t_slot": "no"}]}
     obj3 = {"tipo": "use_activated", "liv_spell": 5, "liv_caster": 9, "mods": [{"tipo": "fifty_charges"}]}
-    obj4 = {"tipo": "use_activated", "liv_spell": 6, "liv_caster": 11,
-            "mods": [{"tipo": "daily_charges", "n": 1}, {"tipo": "slot", "t_slot": 'correct'}]}
-    obj5 = {"tipo": "use_activated", "liv_spell": 3, "liv_caster": 5,
-            "mods": [{"tipo": "daily_charges", "n": 1}, {"tipo": "slot", "t_slot": 'correct'}]}
+    obj4 = {"tipo": "use_activated", "liv_spell": 3, "liv_caster": 5, "mods": [{"tipo": "daily_charges", "n": 1}, {"tipo": "slot", "t_slot": 'correct'}]}
+    obj5 = {"tipo": "use_activated", "liv_spell": 6, "liv_caster": 11, "mods": [{"tipo": "daily_charges", "n": 1}, {"tipo": "slot", "t_slot": 'correct'}]}
 
     assert get_magic_item_price(obj1) == base * 1.5
     assert get_magic_item_price(obj2) == base * 2
@@ -70,3 +68,5 @@ def test_tipo_non_valido():
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__])
+
+
