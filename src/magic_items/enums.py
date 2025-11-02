@@ -46,7 +46,7 @@ class BodySlot(str, Enum):
     @property
     def label(self):
         return {
-            "correct": "Slot Compatibile",
-            "unusual": "Slot Insolito",
-            "no": "Nessuno Slot",
+            "correct": "Compatibile",
+            "unusual": "Insolito",
+            "no": "Nessuno",
         }[self.value]
