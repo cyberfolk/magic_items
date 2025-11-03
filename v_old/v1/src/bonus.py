@@ -10,8 +10,8 @@ def price_bonus_caratteristica(obj: dict) -> int:
     return (bonus ** 2) * 1000
 
 
-def price_bonus_armatura(obj: dict) -> int:
-    bonus = _require_bonus(obj, "bonus_armatura")
+def price_magic_armor(obj: dict) -> int:
+    bonus = _require_bonus(obj, "magic_armor")
     return (bonus ** 2) * 1000
 
 
@@ -25,8 +25,8 @@ def price_bonus_ca_altro(obj: dict) -> int:
     return (bonus ** 2) * 2500
 
 
-def price_bonus_armatura_naturale(obj: dict) -> int:
-    bonus = _require_bonus(obj, "bonus_armatura_naturale")
+def price_magic_armor_naturale(obj: dict) -> int:
+    bonus = _require_bonus(obj, "magic_armor_naturale")
     return (bonus ** 2) * 2000
 
 

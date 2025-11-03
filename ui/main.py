@@ -1,7 +1,7 @@
 # python -m streamlit run ui/main.py
 import streamlit as st
 from src.magic_items.models import MagicItem
-from src.magic_items.enums import ItemType, Duration, BodySlot, UsageMode
+from src.magic_items.enums import ItemType, Duration, BodySlot, UsageMode, ActivMode
 from pydantic import ValidationError
 
 st.title("Magic Item Builder")
@@ -19,7 +19,10 @@ if item_type == ItemType.BONUS_STATS:
     fs["bonus"] = st.number_input("Bonus", step=1, value=2, min_value=2, max_value=6)
     fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
 
-if item_type == ItemType.BONUS_ARMOR:
+if item_type == ItemType.MAGIC_ARMOR:
+    fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
+
+if item_type == ItemType.MAGIC_WEAPON:
     fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
 
 if item_type == ItemType.BONUS_CA_DEV:
@@ -30,25 +33,26 @@ if item_type == ItemType.BONUS_CA_ALTRO:
     fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
     fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
 
-if item_type in {ItemType.SCROLL, ItemType.POTION, ItemType.WAND, ItemType.USE}:
+if item_type in {ItemType.SCROLL, ItemType.POTION, ItemType.WAND, ItemType.MAGIC_EFFECT}:
     col1, col2 = st.columns(2)
     with col1:
         fs["liv_spell"] = st.number_input("Livello Incantesimo", step=1, value=1, min_value=1, max_value=9)
     with col2:
         fs["liv_caster"] = st.number_input("Livello Incantatore", step=1, value=1, min_value=1, max_value=20)
 
-if item_type == ItemType.USE:
+if item_type == ItemType.MAGIC_EFFECT:
     col3, col4 = st.columns(2)
     with col3:
         fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
+        fs["activ_mode"] = st.selectbox("Modalità d'Attivazione", options=list(ActivMode),
+                                        format_func=lambda x: x.label)
     with col4:
         fs["usage_mode"] = st.selectbox("Modalità d'Uso", options=list(UsageMode), format_func=lambda x: x.label)
-
-    if fs["usage_mode"] == UsageMode.DAILY_CHARGES:
-        fs["daily_charges"] = st.number_input("Cariche Giornaliere", step=1, value=1, min_value=1)
-    elif fs["usage_mode"] == UsageMode.CONTINUOUS:
-        fs["duration"] = st.selectbox("Durata Incantesimo Originale", options=list(Duration),
-                                      format_func=lambda x: x.label)
+        if fs["usage_mode"] == UsageMode.DAILY_CHARGES:
+            fs["daily_charges"] = st.number_input("Cariche Giornaliere", step=1, value=1, min_value=1)
+        if fs["usage_mode"] == UsageMode.CONTINUOUS:
+            fs["duration"] = st.selectbox("Durata Incantesimo Originale", options=list(Duration),
+                                          format_func=lambda x: x.label)
 
 if st.button("Crea"):
     try:

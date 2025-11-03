@@ -1,9 +1,9 @@
 from .bonus import (
     price_bonus_caratteristica,
-    price_bonus_armatura,
+    price_magic_armor,
     price_bonus_ca_deviazione,
     price_bonus_ca_altro,
-    price_bonus_armatura_naturale,
+    price_magic_armor_naturale,
     price_bonus_ts_resistenza,
     price_bonus_ts_altro,
     price_bonus_abilita,
@@ -21,10 +21,10 @@ from .modifiers import apply_modifiers
 VALID_TYPES = {
     # Bonus statici
     "bonus_caratteristica": (price_bonus_caratteristica, "Bonus caratteristica"),
-    "bonus_armatura": (price_bonus_armatura, "Bonus Armatura"),
+    "magic_armor": (price_magic_armor, "Bonus Armatura"),
     "bonus_ca_deviazione": (price_bonus_ca_deviazione, "Bonus CA (deviazione)"),
     "bonus_ca_altro": (price_bonus_ca_altro, "Bonus CA (altro)"),
-    "bonus_armatura_naturale": (price_bonus_armatura_naturale, "Bonus Armatura Naturale"),
+    "magic_armor_naturale": (price_magic_armor_naturale, "Bonus Armatura Naturale"),
     "bonus_ts_resistenza": (price_bonus_ts_resistenza, "Bonus TS (Resistenza)"),
     "bonus_ts_altro": (price_bonus_ts_altro, "Bonus TS (Altro)"),
     "bonus_abilita": (price_bonus_abilita, "Bonus Abilità"),

@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field, model_validator, computed_field
 
-from .enums import ItemType, Duration, BodySlot, UsageMode
+from .enums import ItemType, Duration, BodySlot, UsageMode, ActivMode
 
 
 class MagicItem(BaseModel):
@@ -15,6 +15,7 @@ class MagicItem(BaseModel):
     fifty_charges: Optional[bool] = Field(None, title="50 Cariche")
 
     usage_mode: Optional[UsageMode] = Field(None, title="Modalità d'Uso")
+    activ_mode: Optional[ActivMode] = Field(None, title="Modalità d'Attivazione")
     duration: Optional[Duration] = Field(None, title="Durata Incantesimo Originale")
 
     @model_validator(mode="after")
@@ -24,21 +25,21 @@ class MagicItem(BaseModel):
         if t in {ItemType.BONUS_STATS}:
             if self.bonus is None or self.bonus not in (2, 4, 6):
                 raise ValueError(f"Il {ItemType.BONUS_STATS.label} può essere solo 2, 4 o 6")
-            for f in ["liv_spell", "liv_caster", "duration", "usage_mode"]:  # body_slot visibile
+            for f in ["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]:  # body_slot visibile
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f.label} deve essere vuoto")
 
         if t in {ItemType.BONUS_CA_DEV}:
             if self.bonus is None or self.bonus < 1 or self.bonus > 5:
                 raise ValueError("Il Bonus deve essere tra 1 e 5")
-            for f in ["liv_spell", "liv_caster", "duration", "usage_mode"]:  # body_slot visibile
+            for f in ["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]:  # body_slot visibile
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f.label} deve essere vuoto")
 
-        if t in {ItemType.BONUS_ARMOR}:
+        if t in {ItemType.MAGIC_ARMOR}:
             if self.bonus is None or self.bonus < 1 or self.bonus > 5:
                 raise ValueError("Il Bonus deve essere tra 1 e 5")
-            for f in ["liv_spell", "liv_caster", "duration", "usage_mode", "body_slot"]:
+            for f in ["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode", "body_slot"]:
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f.label} deve essere vuoto")
 
@@ -47,11 +48,11 @@ class MagicItem(BaseModel):
                 raise ValueError("Livello Incantesimo deve essere tra 1 e 9")
             if self.liv_caster is None or self.liv_caster < 1 or self.liv_caster > 20:
                 raise ValueError("Livello Incantatore deve essere tra 1 e 20")
-            for f in ["bonus", "duration", "usage_mode", "body_slot"]:
+            for f in ["bonus", "duration", "usage_mode", "activ_mode", "body_slot"]:
                 if getattr(self, f) not in [None, False]:
                     raise ValueError(f"{f} deve essere vuoto")
 
-        if t == ItemType.USE:
+        if t == ItemType.MAGIC_EFFECT:
             if self.bonus not in [None, False]:
                 raise ValueError("Bonus deve essere vuoto")
             if self.liv_spell is None or self.liv_spell < 1 or self.liv_spell > 9:
@@ -60,6 +61,8 @@ class MagicItem(BaseModel):
                 raise ValueError("Livello Incantatore deve essere tra 1 e 20")
             if self.usage_mode in [None, False]:
                 raise ValueError("Modalità d'Uso deve essere compilato")
+            if self.activ_mode in [None, False]:
+                raise ValueError("Modalità d'Attivazione deve essere compilato")
             elif self.usage_mode == UsageMode.DAILY_CHARGES:
                 if self.daily_charges in [None, False]:
                     raise ValueError("Specificare il Numero di Cariche Giornaliere")
@@ -85,8 +88,11 @@ class MagicItem(BaseModel):
                 name += f" | Slot Corporeo {self.body_slot.label}"
             return name
 
-        if t == ItemType.BONUS_ARMOR:
+        if t == ItemType.MAGIC_ARMOR:
             return f"Armatura +{self.bonus}"
+
+        if t == ItemType.MAGIC_WEAPON:
+            return f"Arma +{self.bonus}"
 
         if t == ItemType.BONUS_CA_DEV:
             name = f"Oggetto +{self.bonus} CA (Deviazione)"
@@ -109,8 +115,12 @@ class MagicItem(BaseModel):
         if t == ItemType.WAND:
             return f"Bacchetta di {self.liv_spell}° Livello (LI {self.liv_caster})"
 
-        if t == ItemType.USE:
-            name = f"Oggetto Attivato ad uso | Incantesimo di {self.liv_spell}° Livello (LI {self.liv_caster})"
+        if t == ItemType.MAGIC_EFFECT:
+            name = f"Oggetto a Effetto Magico"
+            if self.activ_mode:
+                name += f" | Incantesimo di {self.liv_spell}° Livello (LI {self.liv_caster})"
+            if self.activ_mode:
+                name += f" | {self.activ_mode.label}"
             if self.usage_mode == UsageMode.FIFTY_CHARGES:
                 name += f" | 50 cariche"
             if self.usage_mode == UsageMode.DAILY_CHARGES:
@@ -131,58 +141,57 @@ class MagicItem(BaseModel):
         price = 0
 
         if t in ItemType.BONUS_STATS:
-            price = (self.bonus ** 2) * 1000
-            if self.body_slot == BodySlot.UNUSUAL:
-                price *= 1.5
-            elif self.body_slot == BodySlot.NO:
-                price *= 2
-            return price
+            return (self.bonus ** 2) * self.item_type.price_base * self.body_slot.price_base
 
+        if t == ItemType.MAGIC_ARMOR:
+            return (self.bonus ** 2) * self.item_type.price_base
 
-        if t == ItemType.BONUS_ARMOR:
-            price = (self.bonus ** 2) * 1000
+        if t == ItemType.MAGIC_WEAPON:
+            return (self.bonus ** 2) * self.item_type.price_base
 
         if t in ItemType.BONUS_CA_DEV:
-            price = (self.bonus ** 2) * 2000
-            if self.body_slot == BodySlot.UNUSUAL:
-                price *= 1.5
-            elif self.body_slot == BodySlot.NO:
-                price *= 2
-            return price
+            return (self.bonus ** 2) * self.item_type.price_base * self.body_slot.price_base
 
         if t in ItemType.BONUS_CA_ALTRO:
-            price = (self.bonus ** 2) * 2500
-            if self.body_slot == BodySlot.UNUSUAL:
-                price *= 1.5
-            elif self.body_slot == BodySlot.NO:
-                price *= 2
-            return price
+            return (self.bonus ** 2) * self.item_type.price_base * self.body_slot.price_base
 
+        if t == ItemType.SCROLL:
+            return self.liv_spell * self.liv_caster * self.item_type.price_base
 
-        # # scroll
-        # if t == ItemType.SCROLL:
-        #     return self.liv_spell * self.liv_caster * 25
-        #
-        # # potion
-        # if t == ItemType.POTION:
-        #     return self.liv_spell * self.liv_caster * 50
-        #
-        # # wand (50 charges)
-        # if t == ItemType.WAND:
-        #     return self.liv_spell * self.liv_caster * 750
-        #
-        # # use activated
-        # if t == ItemType.USE:
-        #     base = self.liv_spell * self.liv_caster * 2000
-        #     if self.fifty_charges:
-        #         return base // 2
-        #     if self.daily_charges:
-        #         # divide per (5 / charges_per_day)
-        #         # DMG rule: dividi per (5 / cariche)
-        #         return int(base / (5 / self.daily_charges))
-        #     return base
+        if t == ItemType.POTION:
+            return self.liv_spell * self.liv_caster * self.item_type.price_base
+
+        if t == ItemType.WAND:
+            return self.liv_spell * self.liv_caster * self.item_type.price_base
+
+        if t == ItemType.MAGIC_EFFECT:
+            base = self.liv_spell * self.liv_caster * self.activ_mode.price_base * self.body_slot.price_base
+            if self.usage_mode == UsageMode.FIFTY_CHARGES:
+                return base / 2
+            if self.daily_charges:
+                return base / (5 / self.daily_charges)  # # DMG rule: dividi per (5 / cariche)
+            if self.duration:
+                return base * self.duration.price_base
+            return base
 
         return price
+
+    def get_body_slot_txt(self):
+        """Ritorna una descrizione dello slot corporeo, o una stringa vuota se corretto."""
+        if self.body_slot != BodySlot.CORRECT:
+            return f" | Slot Corporeo {body_slot.label}"
+        return ""
+
+    def get_liv_spell_txt(self):
+        """Ritorna una descrizione Livello Incantesimo e LI, o una stringa vuota se info assenti."""
+        if self.liv_spell or self.liv_caster:
+            return f"di {self.liv_spell}° Livello (LI {self.liv_caster})"
+        return ""
+
+    def ensure_empty_fields(self, fields: list[str]):
+        for field in fields:
+            if getattr(self, field) not in [None, False]:
+                raise ValueError(f"{field} deve essere vuoto")
 
 # Se un oggetto continuo
 #   ha un effetto basato su di un incantesimo

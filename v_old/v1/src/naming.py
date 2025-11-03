@@ -1,9 +1,9 @@
 MAP_NAME = {
     "bonus_caratteristica": "Bonus caratteristica",
-    "bonus_armatura": "Bonus armatura",
+    "magic_armor": "Bonus armatura",
     "bonus_ca_deviazione": "Bonus CA (deviazione)",
     "bonus_ca_altro": "Bonus CA (altro)",
-    "bonus_armatura_naturale": "Bonus armatura naturale",
+    "magic_armor_naturale": "Bonus armatura naturale",
     "bonus_ts_resistenza": "Bonus TS (resistenza)",
     "bonus_ts_altro": "Bonus TS (altro)",
     "bonus_abilita": "Bonus abilità",

@@ -4,7 +4,7 @@ from ..src.price import get_magic_item_price
 
 def test_bonus_statici():
     assert get_magic_item_price({"tipo": "bonus_caratteristica", "bonus": 2}) == 4000  # 2^2 * 1000
-    assert get_magic_item_price({"tipo": "bonus_armatura", "bonus": 1}) == 1000  # 1^2 * 1000
+    assert get_magic_item_price({"tipo": "magic_armor", "bonus": 1}) == 1000  # 1^2 * 1000
     assert get_magic_item_price({"tipo": "bonus_ca_deviazione", "bonus": 3}) == 18000  # 3^2 * 2000
 
 

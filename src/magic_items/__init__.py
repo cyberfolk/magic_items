@@ -1,4 +1,4 @@
-from .enums import ItemType, Duration, BodySlot, UsageMode
+from .enums import ItemType, Duration, BodySlot, UsageMode, ActivMode
 from .models import MagicItem
 
 __all__ = [
@@ -6,5 +6,6 @@ __all__ = [
     "Duration",
     "BodySlot",
     "UsageMode",
+    "ActivMode",
     "MagicItem",
 ]
