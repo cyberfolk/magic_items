@@ -5,17 +5,25 @@ from src.magic_items.models import MagicItem
 from src.magic_items.enums import ItemType, Duration, BodySlot, UsageMode, ActivMode, BonusType
 from pydantic import ValidationError
 
+st.set_page_config(page_title="Magic Item Builder", page_icon="🧙")
 st.title("🧙 Magic Item Builder")
 st.caption("Configura, calcola e genera oggetti magici per D&D 3.5")
+st.sidebar.header("🪄 Come funziona")
+st.sidebar.info(
+    """
+    1. Scegli il tipo di oggetto.
+    2. Compila i parametri richiesti.
+    3. Premi "Genera Oggetto" per ottenere prezzo, dettagli e formule.
+    """
+)
 
 fs = {}  # fields
 
 # ─── INPUT DINAMICI ──────────────────────────────────────────────
 with st.container(border=True):
-    st.subheader("⚙️ Configura l’oggetto")
 
     # ─── TIPO ───────────────────────────────
-    item_type = st.selectbox("Tipo Oggetto", options=list(ItemType), format_func=lambda x: x.label)
+    item_type = st.selectbox("📚 Tipo di Oggetto", options=list(ItemType), format_func=lambda x: x.label)
     col1, col2, col3 = st.columns(3)
 
     # ─── BONUS ARMOR WEAPON ───────────────────────────────
@@ -63,34 +71,41 @@ with st.container(border=True):
         with col2:
             fs["liv_caster"] = st.number_input("Livello Incantatore", step=1, value=1, min_value=1, max_value=20)
 
-    # ─── MAGIC EFFECT EXTRA ──────────────────
-    if item_type == ItemType.MAGIC_EFFECT:
-        st.divider()
-        col3, col4 = st.columns(2)
-        with col3:
-            fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
-            fs["activ_mode"] = st.selectbox("Modalità d'Attivazione", options=list(ActivMode), format_func=lambda x: x.label)
-        with col4:
-            fs["usage_mode"] = st.selectbox("Modalità d'Uso", options=list(UsageMode), format_func=lambda x: x.label)
-            if fs["usage_mode"] == UsageMode.DAILY_CHARGES:
-                fs["daily_charges"] = st.number_input("Cariche Giornaliere", step=1, value=1, min_value=1)
-            if fs["usage_mode"] == UsageMode.CONTINUOUS:
-                fs["duration"] = st.selectbox("Durata Incantesimo Originale", options=list(Duration), format_func=lambda x: x.label)
-
     # ─── BONUS SPELL ──────────────────
     if item_type == ItemType.BONUS_SPELL:
         with col1:
             fs["liv_spell"] = st.number_input("Livello Incantesimo", step=1, value=1, min_value=1, max_value=9)
+
+if item_type == ItemType.MAGIC_EFFECT:
+    with st.container(border=True):
+        # ─── MAGIC EFFECT EXTRA ──────────────────
+            col3, col4 = st.columns(2)
+            with col3:
+                fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
+                fs["activ_mode"] = st.selectbox("Modalità d'Attivazione", options=list(ActivMode), format_func=lambda x: x.label)
+            with col4:
+                fs["usage_mode"] = st.selectbox("Modalità d'Uso", options=list(UsageMode), format_func=lambda x: x.label)
+                if fs["usage_mode"] == UsageMode.DAILY_CHARGES:
+                    fs["daily_charges"] = st.number_input("Cariche Giornaliere", step=1, value=1, min_value=1)
+                if fs["usage_mode"] == UsageMode.CONTINUOUS:
+                    fs["duration"] = st.selectbox("Durata Incantesimo Originale", options=list(Duration), format_func=lambda x: x.label)
+
+
 # endregion ------------------------------------------------------------------------------------------------------------
 
-if st.button("✨ Genera Oggetto", use_container_width=True, type="secondary"):
+with st.container():
+    st.markdown('<div class="magic-panel">', unsafe_allow_html=True)
+    generate = st.button("✨ Genera Oggetto", use_container_width=True, type="secondary")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+if generate:
     try:
         item = MagicItem(item_type=item_type, **{k: v for k, v in fs.items() if v not in (None, 0, False)})
 
         with st.container(border=True):
             col_a, col_b = st.columns([1,2])
             col_a.metric("💰 Prezzo", f"{item.price} MO")
-            col_b.metric("Categoria", item.item_type.label)
+            col_b.metric("📚 Tipo di Oggetto", item.item_type.label)
 
             txt_spell = item.txt_liv_spell if item_type == ItemType.BONUS_SPELL else item.txt_liv_spell_and_liv_caster
 
