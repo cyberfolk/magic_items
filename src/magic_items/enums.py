@@ -1,3 +1,4 @@
+# fmt: off
 from enum import Enum
 
 
@@ -54,14 +55,4 @@ class ActivMode(LabeledEnum):
     USE_ACTIVATED   = ("use_activated", "Attivato ad uso",   2000)
     COMMAND_WORD    = ("command_word",  "Parola di Comando", 1800)
 
-# Bonus di caratteristica (potenziamento)
-# Bonus di armatura (potenziamento)
-# Incantesimo bonus
-# Bonus alla CA (deviazione)
-# Bonus alla CA (altro)
-# Bonus di armatura naturale (potenziamento)
-# Bonus ai tiri salvezza (resistenza)
-# Bonus ai tiri salvezza (altro)
-# Bonus di abilità (competenza)
-# Resistenza agli incantesimi
-# Bonus dell'arma (potenziamento)
+# fmt: on
