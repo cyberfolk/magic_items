@@ -2,7 +2,7 @@
 # fmt: off
 import streamlit as st
 from src.magic_items.models import MagicItem
-from src.magic_items.enums import ItemType, Duration, BodySlot, UsageMode, ActivMode
+from src.magic_items.enums import ItemType, Duration, BodySlot, UsageMode, ActivMode, BonusType
 from pydantic import ValidationError
 
 st.title("🧙 Magic Item Builder")
@@ -16,19 +16,36 @@ with st.container(border=True):
 
     # ─── TIPO ───────────────────────────────
     item_type = st.selectbox("Tipo Oggetto", options=list(ItemType), format_func=lambda x: x.label)
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     # ─── BONUS ───────────────────────────────
     if item_type in (ItemType.MAGIC_ARMOR, ItemType.MAGIC_WEAPON):
-        fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
-    elif item_type in (ItemType.BONUS_CA_DEV, ItemType.BONUS_CA_ALTRO, ItemType.BONUS_STATS):
-        if item_type == ItemType.BONUS_STATS:
-            with col1:
-                fs["bonus"] = st.number_input("Bonus", step=1, value=2, min_value=2, max_value=6)
-        else:
-            with col1:
-                fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
+        with col1:
+            fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
         with col2:
+            only = BonusType.ENHANCEMENT
+            fs["bonus_type"] = st.selectbox("Tipo Bonus", options=only, format_func=lambda x: x.label, disabled=True)
+
+
+    # ─── BONUS STATISTICHE ─────────────────────────
+    elif item_type == ItemType.BONUS_STATS:
+        with col1:
+            fs["bonus"] = st.number_input("Bonus", step=1, value=2, min_value=2, max_value=6)
+        with col2:
+            only = BonusType.ENHANCEMENT
+            fs["bonus_type"] = st.selectbox("Tipo Bonus", options=only, format_func=lambda x: x.label, disabled=True)
+        with col3:
+            fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
+
+
+    # ─── BONUS CA ─────────────────────────
+    elif item_type == ItemType.BONUS_CA:
+        with col1:
+            fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
+        with col2:
+            only = (BonusType.CA_DEFLECTION, BonusType.CA_NATURAL, BonusType.CA_OTHERS)
+            fs["bonus_type"] = st.selectbox("Tipo Bonus", options=only, format_func=lambda x: x.label)
+        with col3:
             fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
 
     # ─── INCANTESIMO ─────────────────────────
@@ -51,6 +68,11 @@ with st.container(border=True):
                 fs["daily_charges"] = st.number_input("Cariche Giornaliere", step=1, value=1, min_value=1)
             if fs["usage_mode"] == UsageMode.CONTINUOUS:
                 fs["duration"] = st.selectbox("Durata Incantesimo Originale", options=list(Duration), format_func=lambda x: x.label)
+
+    # ─── BONUS SPELL ──────────────────
+    if item_type == ItemType.BONUS_SPELL:
+        with col1:
+            fs["liv_spell"] = st.number_input("Livello Incantesimo", step=1, value=1, min_value=1, max_value=9)
 # endregion ------------------------------------------------------------------------------------------------------------
 
 if st.button("✨ Genera Oggetto", use_container_width=True):
@@ -62,13 +84,15 @@ if st.button("✨ Genera Oggetto", use_container_width=True):
             col_a.metric("💰 Prezzo", f"{item.price} MO")
             col_b.metric("Tipo", item.item_type.label)
 
+            txt_spell = item.txt_liv_spell if item_type == ItemType.BONUS_SPELL else item.txt_liv_spell_and_liv_caster
 
             details = [
                 ("Bonus", item.txt_bonus),
-                ("Incantesimo", item.txt_liv_spell_and_liv_caster),
+                ("Tipo Bonus", item.txt_bonus_type),
+                ("Incantesimo", txt_spell),
                 ("Attivazione", item.txt_activ_mode),
                 ("Utilizzo", item.txt_usage_mode),
-                ("Slot", item.txt_body_slot),
+                ("Slot Corporeo", item.txt_body_slot),
             ]
             bullet = [f"**{k}:** {v}" for k, v in details if v]
             if bullet:
@@ -81,5 +105,5 @@ if st.button("✨ Genera Oggetto", use_container_width=True):
 
     except ValidationError as e:
         for err in e.errors():
-            st.warning(err["msg"])
+            st.error(err["msg"])
 # fmt: on

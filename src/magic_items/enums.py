@@ -12,15 +12,15 @@ class MagicItemsEnum(str, Enum):
 
 
 class ItemType(MagicItemsEnum):
-    BONUS_STATS     = ("bonus_caratteristica",  "Bonus di Caratteristica (Potenziamento)",  1000)
-    MAGIC_ARMOR     = ("magic_armor",           "Armatura Magica (Potenziamento)",          1000)
-    MAGIC_WEAPON    = ("magic_weapon",          "Arma Magica (Potenziamento)",              2000)
-    BONUS_CA_DEV    = ("bonus_ca_deviazione",   "Bonus CA (Deviazione)",                    2000)
-    BONUS_CA_ALTRO  = ("bonus_ca_altro",        "Bonus CA (Altro)",                         2500)
-    MAGIC_EFFECT    = ("magic_effect",          "Oggetto con Effetto Magico",                  1)
-    SCROLL          = ("scroll",                "Pergamena",                                  25)
-    POTION          = ("potion",                "Pozione",                                    50)
-    WAND            = ("wand",                  "Bacchetta",                                 750)
+    BONUS_STATS     = ("bonus_caratteristica",  "Bonus di Caratteristica",  1000)
+    MAGIC_ARMOR     = ("magic_armor",           "Armatura Magica",          1000)
+    BONUS_SPELL     = ("bonus_spell",           "Incantesimo bonus",        1000)
+    MAGIC_WEAPON    = ("magic_weapon",          "Arma Magica",              2000)
+    BONUS_CA        = ("bonus_ca",              "Bonus CA",                 1000)
+    MAGIC_EFFECT    = ("magic_effect",          "Oggetto Effetto Magico",      1)
+    SCROLL          = ("scroll",                "Pergamena",                  25)
+    POTION          = ("potion",                "Pozione",                    50)
+    WAND            = ("wand",                  "Bacchetta",                  750)
 
 
 class Duration(MagicItemsEnum):
@@ -46,5 +46,11 @@ class UsageMode(MagicItemsEnum):
 class ActivMode(MagicItemsEnum):
     USE_ACTIVATED   = ("use_activated", "Attivato ad uso",   2000)
     COMMAND_WORD    = ("command_word",  "Parola di Comando", 1800)
+
+class BonusType(MagicItemsEnum):
+    ENHANCEMENT      = ("enhancement", "Potenziamento", 1)
+    CA_DEFLECTION    = ("deflection",  "Deviazione",    2)
+    CA_NATURAL       = ("natural",     "Naturale",      2)
+    CA_OTHERS        = ("others",      "Altri (Fortuna, Cognitivo, Sacro o Profano)", 2.5)
 
 # fmt: on

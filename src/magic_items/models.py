@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel, Field, model_validator, computed_field
 from typing import Iterable
 
-from .enums import ItemType, Duration, BodySlot, UsageMode, ActivMode
+from .enums import ItemType, Duration, BodySlot, UsageMode, ActivMode, BonusType
 
 
 class MagicItem(BaseModel):
@@ -18,6 +18,7 @@ class MagicItem(BaseModel):
     usage_mode: Optional[UsageMode] = Field(None, title="Modalità d'Uso")
     activ_mode: Optional[ActivMode] = Field(None, title="Modalità d'Attivazione")
     duration: Optional[Duration] = Field(None, title="Durata Incantesimo Originale")
+    bonus_type: Optional[BonusType] = Field(None, title="Tipo di Bonus")
     # endregion --------------------------------------------------------------------------------------------------------
 
     # region VALIDATION ------------------------------------------------------------------------------------------------
@@ -29,13 +30,19 @@ class MagicItem(BaseModel):
             self.check_in(self.bonus, (2, 4, 6), f"Il Bonus può essere solo 2, 4 o 6")
             self.check_empty(["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]) # body_slot visibile
 
-        if t in {ItemType.BONUS_CA_DEV}:
+        if t in {ItemType.BONUS_CA}:
+            check_range = (BonusType.CA_DEFLECTION, BonusType.CA_NATURAL, BonusType.CA_OTHERS)
             self.check_in(self.bonus, (1, 2, 3, 4, 5), "Il Bonus deve essere tra 1 e 5")
+            self.check_in(self.bonus_type, check_range, "Il Tipo Bonus deve essere Deviazione, Naturale o Altri")
             self.check_empty(["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]) # body_slot visibile
 
         if t in {ItemType.MAGIC_ARMOR}:
             self.check_in(self.bonus, (1, 2, 3, 4, 5), "Il Bonus deve essere tra 1 e 5")
             self.check_empty(["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode", "body_slot"])
+
+        if t in {ItemType.BONUS_SPELL}:
+            self.check_in(self.liv_spell,  range(1, 10), "Livello Incantesimo deve essere tra 1 e 9")
+            self.check_empty(["bonus", "liv_caster", "duration", "usage_mode", "activ_mode", "body_slot"])
 
         if t in {ItemType.SCROLL, ItemType.POTION, ItemType.WAND}:
             self.check_in(self.liv_spell,  range(1, 10), "Livello Incantesimo deve essere tra 1 e 9")
@@ -65,9 +72,23 @@ class MagicItem(BaseModel):
 
     @computed_field
     @property
+    def txt_bonus_type(self) -> str:
+        if self.bonus_type not in [None, False, 0]:
+            return self.bonus_type.label
+        return ""
+
+    @computed_field
+    @property
     def txt_liv_spell_and_liv_caster(self) -> str:
-        if self.liv_spell or self.liv_caster:
+        if self.liv_spell and self.liv_caster:
             return f"Incantesimo di {self.liv_spell}° Livello (LI {self.liv_caster})"
+        return ""
+
+    @computed_field
+    @property
+    def txt_liv_spell(self) -> str:
+        if self.liv_spell:
+            return f"{self.liv_spell}° Livello"
         return ""
 
     @computed_field
@@ -91,7 +112,7 @@ class MagicItem(BaseModel):
     @computed_field
     @property
     def txt_body_slot(self) -> str:
-        if self.body_slot in (BodySlot.NO, BodySlot.UNUSUAL):
+        if self.body_slot:
             return self.body_slot.label
         return ""
     # endregion --------------------------------------------------------------------------------------------------------
@@ -116,10 +137,10 @@ class MagicItem(BaseModel):
         """Ritorna (prezzo, formula) usati per il calcolo."""
         t = self.item_type
 
-        if t in (ItemType.BONUS_STATS, ItemType.BONUS_CA_DEV, ItemType.BONUS_CA_ALTRO):
-            price   = (self.bonus**2) * t.price_base * self.body_slot.price_base
-            formula = f"BONUS² × PRICE_BASE × BODY_SLOT"
-            math    = f"{self.bonus}² × {t.price_base} × {self.body_slot.price_base}"
+        if t in (ItemType.BONUS_STATS, ItemType.BONUS_CA):
+            price   = (self.bonus**2) * t.price_base * self.body_slot.price_base * self.bonus_type.price_base
+            formula = f"BONUS² × PRICE_BASE × BODY_SLOT × BONUS_TYPE_BASE "
+            math    = f"{self.bonus}² × {t.price_base} × {self.body_slot.price_base} × {self.bonus_type.price_base}"
 
         elif t in (ItemType.MAGIC_ARMOR, ItemType.MAGIC_WEAPON):
             price = (self.bonus**2) * t.price_base
@@ -130,6 +151,11 @@ class MagicItem(BaseModel):
             price = self.liv_spell * self.liv_caster * t.price_base
             formula = f"LIV_SPELL × LIVE_CASTER × PRICE_BASE"
             math = f"{self.liv_spell} × {self.liv_caster} × {t.price_base}"
+
+        elif t == ItemType.BONUS_SPELL:
+            price = (self.liv_spell**2) * t.price_base
+            formula = f"LIV_SPELL² × PRICE_BASE"
+            math = f"{self.liv_spell}² × {t.price_base}"
 
         elif t == ItemType.MAGIC_EFFECT:
             price = (self.liv_spell * self.liv_caster * self.activ_mode.price_base * self.body_slot.price_base)
