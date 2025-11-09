@@ -64,7 +64,11 @@ if st.button("✨ Genera Oggetto", use_container_width=True):
         item = MagicItem(item_type=item_type, **{k: v for k, v in fs.items() if v not in (None, 0, False)})
 
         with st.container(border=True):
-            st.subheader(f"{item.price} MO 💰 | {item.item_type.label}")
+            col_a, col_b = st.columns([1,2])
+            col_a.metric("💰 Prezzo", f"{item.price} MO")
+            col_b.metric("Tipo", item.item_type.label)
+
+
             details = [
                 ("Bonus", item.txt_bonus),
                 ("Incantesimo", item.txt_liv_spell_and_liv_caster),
@@ -74,7 +78,7 @@ if st.button("✨ Genera Oggetto", use_container_width=True):
             ]
             bullet = [f"**{k}:** {v}" for k, v in details if v]
             if bullet:
-                st.markdown("\n".join(f"- {d}" for d in bullet))
+                st.info("\n".join(f"- {d}" for d in bullet))
 
         # ─── DETTAGLI CALCOLO ──────────────────────────────────
         with st.expander("🔍 Dettagli Calcolo"):
