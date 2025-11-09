@@ -8,20 +8,14 @@ from pydantic import ValidationError
 st.title("🧙 Magic Item Builder")
 st.caption("Configura, calcola e genera oggetti magici per D&D 3.5")
 
-# ─── SELEZIONE TIPO ──────────────────────────────────────────────
-item_type = st.selectbox("Tipo Oggetto", options=list(ItemType), format_func=lambda x: x.label)
-# item_type = st.segmented_control(
-#     "Tipo Oggetto",
-#     options=list(ItemType),
-#     format_func=lambda x: x.label,
-#     default=ItemType.MAGIC_WEAPON
-# )
-
 fs = {}  # fields
 
 # ─── INPUT DINAMICI ──────────────────────────────────────────────
 with st.container(border=True):
     st.markdown("### ⚙️ Configurazione")
+
+    # ─── TIPO ───────────────────────────────
+    item_type = st.selectbox("Tipo Oggetto", options=list(ItemType), format_func=lambda x: x.label)
     col1, col2 = st.columns(2)
 
     # ─── BONUS ───────────────────────────────
