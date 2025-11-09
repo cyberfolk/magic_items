@@ -28,13 +28,19 @@ class MagicItem(BaseModel):
 
         if t in {ItemType.BONUS_STATS}:
             self.check_in(self.bonus, (2, 4, 6), f"Il Bonus può essere solo 2, 4 o 6")
-            self.check_empty(["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]) # body_slot visibile
+            self.check_empty(["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]) # body_slot, bonus_type visibili
 
         if t in {ItemType.BONUS_CA}:
             check_range = (BonusType.CA_DEFLECTION, BonusType.CA_NATURAL, BonusType.CA_OTHERS)
             self.check_in(self.bonus, (1, 2, 3, 4, 5), "Il Bonus deve essere tra 1 e 5")
             self.check_in(self.bonus_type, check_range, "Il Tipo Bonus deve essere Deviazione, Naturale o Altri")
-            self.check_empty(["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]) # body_slot visibile
+            self.check_empty(["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]) # body_slot, bonus_type visibili
+
+        if t in {ItemType.BONUS_TS}:
+            check_range = (BonusType.TS_RESISTENCE, BonusType.TS_OTHERS)
+            self.check_in(self.bonus, (1, 2, 3, 4, 5), "Il Bonus deve essere tra 1 e 5")
+            self.check_in(self.bonus_type, check_range, "Il Tipo Bonus deve essere Resistenza o Altri")
+            self.check_empty(["liv_spell", "liv_caster", "duration", "usage_mode", "activ_mode"]) # body_slot, bonus_type visibili
 
         if t in {ItemType.MAGIC_ARMOR}:
             self.check_in(self.bonus, (1, 2, 3, 4, 5), "Il Bonus deve essere tra 1 e 5")
@@ -137,7 +143,7 @@ class MagicItem(BaseModel):
         """Ritorna (prezzo, formula) usati per il calcolo."""
         t = self.item_type
 
-        if t in (ItemType.BONUS_STATS, ItemType.BONUS_CA):
+        if t in (ItemType.BONUS_STATS, ItemType.BONUS_CA, ItemType.BONUS_TS):
             price   = (self.bonus**2) * t.price_base * self.body_slot.price_base * self.bonus_type.price_base
             formula = f"BONUS² × PRICE_BASE × BODY_SLOT × BONUS_TYPE_BASE "
             math    = f"{self.bonus}² × {t.price_base} × {self.body_slot.price_base} × {self.bonus_type.price_base}"

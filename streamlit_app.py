@@ -12,13 +12,13 @@ fs = {}  # fields
 
 # ─── INPUT DINAMICI ──────────────────────────────────────────────
 with st.container(border=True):
-    st.markdown("### ⚙️ Configurazione")
+    st.subheader("⚙️ Configura l’oggetto")
 
     # ─── TIPO ───────────────────────────────
     item_type = st.selectbox("Tipo Oggetto", options=list(ItemType), format_func=lambda x: x.label)
     col1, col2, col3 = st.columns(3)
 
-    # ─── BONUS ───────────────────────────────
+    # ─── BONUS ARMOR WEAPON ───────────────────────────────
     if item_type in (ItemType.MAGIC_ARMOR, ItemType.MAGIC_WEAPON):
         with col1:
             fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
@@ -26,6 +26,15 @@ with st.container(border=True):
             only = BonusType.ENHANCEMENT
             fs["bonus_type"] = st.selectbox("Tipo Bonus", options=only, format_func=lambda x: x.label, disabled=True)
 
+    # ─── BONUS TS ───────────────────────────────
+    if item_type == ItemType.BONUS_TS:
+        with col1:
+            fs["bonus"] = st.number_input("Bonus", step=1, value=1, min_value=1, max_value=5)
+        with col2:
+            only = (BonusType.TS_RESISTENCE, BonusType.TS_OTHERS)
+            fs["bonus_type"] = st.selectbox("Tipo Bonus", options=only, format_func=lambda x: x.label)
+        with col3:
+            fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
 
     # ─── BONUS STATISTICHE ─────────────────────────
     elif item_type == ItemType.BONUS_STATS:
@@ -36,7 +45,6 @@ with st.container(border=True):
             fs["bonus_type"] = st.selectbox("Tipo Bonus", options=only, format_func=lambda x: x.label, disabled=True)
         with col3:
             fs["body_slot"] = st.selectbox("Slot Corporeo", options=list(BodySlot), format_func=lambda x: x.label)
-
 
     # ─── BONUS CA ─────────────────────────
     elif item_type == ItemType.BONUS_CA:
@@ -75,14 +83,14 @@ with st.container(border=True):
             fs["liv_spell"] = st.number_input("Livello Incantesimo", step=1, value=1, min_value=1, max_value=9)
 # endregion ------------------------------------------------------------------------------------------------------------
 
-if st.button("✨ Genera Oggetto", use_container_width=True):
+if st.button("✨ Genera Oggetto", use_container_width=True, type="secondary"):
     try:
         item = MagicItem(item_type=item_type, **{k: v for k, v in fs.items() if v not in (None, 0, False)})
 
         with st.container(border=True):
             col_a, col_b = st.columns([1,2])
             col_a.metric("💰 Prezzo", f"{item.price} MO")
-            col_b.metric("Tipo", item.item_type.label)
+            col_b.metric("Categoria", item.item_type.label)
 
             txt_spell = item.txt_liv_spell if item_type == ItemType.BONUS_SPELL else item.txt_liv_spell_and_liv_caster
 
@@ -99,7 +107,7 @@ if st.button("✨ Genera Oggetto", use_container_width=True):
                 st.info("\n".join(f"- {d}" for d in bullet))
 
         # ─── DETTAGLI CALCOLO ──────────────────────────────────
-        with st.expander("🔍 Dettagli Calcolo"):
+        with st.expander("Dettagli del Calcolo"):
             st.write(f"**Formula:** `{item.price_formula}`")
             st.write(f"**Calcoli:** `{item.price_math}`")
 

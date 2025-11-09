@@ -18,6 +18,7 @@ class ItemType(MagicItemsEnum):
     MAGIC_WEAPON    = ("magic_weapon",          "Arma Magica",              2000)
     BONUS_CA        = ("bonus_ca",              "Bonus CA",                 1000)
     MAGIC_EFFECT    = ("magic_effect",          "Oggetto Effetto Magico",      1)
+    BONUS_TS        = ("bonus_ts",              "Bonus TS",                 1000)
     SCROLL          = ("scroll",                "Pergamena",                  25)
     POTION          = ("potion",                "Pozione",                    50)
     WAND            = ("wand",                  "Bacchetta",                  750)
@@ -48,9 +49,11 @@ class ActivMode(MagicItemsEnum):
     COMMAND_WORD    = ("command_word",  "Parola di Comando", 1800)
 
 class BonusType(MagicItemsEnum):
-    ENHANCEMENT      = ("enhancement", "Potenziamento", 1)
-    CA_DEFLECTION    = ("deflection",  "Deviazione",    2)
-    CA_NATURAL       = ("natural",     "Naturale",      2)
-    CA_OTHERS        = ("others",      "Altri (Fortuna, Cognitivo, Sacro o Profano)", 2.5)
+    ENHANCEMENT      = ("enhancement",    "Potenziamento", 1.0)
+    CA_DEFLECTION    = ("ca_deflection",  "Deviazione",    2.0)
+    CA_NATURAL       = ("ca_natural",     "Naturale",      2.0)
+    TS_RESISTENCE    = ("ts_resistence",  "Resistenza",    1.0)
+    CA_OTHERS        = ("ca_others",      "Altri (Fortuna, Cognitivo, Sacro o Profano)", 2.5)
+    TS_OTHERS        = ("ts_others",      "Altri (Fortuna, Cognitivo, Sacro o Profano)", 2.0)
 
 # fmt: on
