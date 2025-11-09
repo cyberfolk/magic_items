@@ -17,6 +17,7 @@ class MagicItem(BaseModel):
     usage_mode: Optional[UsageMode] = Field(None, title="Modalità d'Uso")
     activ_mode: Optional[ActivMode] = Field(None, title="Modalità d'Attivazione")
     duration: Optional[Duration] = Field(None, title="Durata Incantesimo Originale")
+    # ------------------------------------------------------------------------------------------------------------------
 
     @model_validator(mode="after")
     def validate_logic(self):
@@ -74,8 +75,7 @@ class MagicItem(BaseModel):
             #     Questo caso è OK non necessita alcun campo ulteriore
 
         return self
-
-    # === COMPUTED FIELDS === #
+    # ------------------------------------------------------------------------------------------------------------------
 
     @computed_field
     @property
@@ -132,6 +132,7 @@ class MagicItem(BaseModel):
             return name
 
         return t.label
+    # ------------------------------------------------------------------------------------------------------------------
 
     @computed_field
     @property
@@ -175,6 +176,7 @@ class MagicItem(BaseModel):
             return base
 
         return price
+    # ------------------------------------------------------------------------------------------------------------------
 
     def get_body_slot_txt(self):
         """Ritorna una descrizione dello slot corporeo, o una stringa vuota se corretto."""
@@ -192,10 +194,4 @@ class MagicItem(BaseModel):
         for field in fields:
             if getattr(self, field) not in [None, False]:
                 raise ValueError(f"{field} deve essere vuoto")
-
-# Se un oggetto continuo
-#   ha un effetto basato su di un incantesimo
-#       con una durata misurata in round, moltiplicare il costo per 4.
-#       Se la durata dell'incantesimo è 1 minuto per livello, moltiplicare il costo per 2,
-#       e se la durata è 10 minuti per livello, moltiplicare il costo per 1,5.
-#       Se l'incantesimo ha una durata di 24 ore o superiore, dimezzare il costo.
+    # ------------------------------------------------------------------------------------------------------------------
