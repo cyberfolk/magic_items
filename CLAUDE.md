@@ -9,39 +9,33 @@ Rispondi sempre in italiano.
 ## Commands
 
 ```bash
-# Run all tests
-node tests/test_magic_items.js
-
-# Serve the UI (ES modules block file:// protocol — a static server is required)
-npx serve .
-# or
+# Serve the UI (file:// non funziona — Babel/JSX richiedono un server HTTP)
 python -m http.server
+# oppure, se serve è installato globalmente:
+serve .
 ```
 
 No install step — `package.json` only sets `"type": "module"`, no dependencies.
 
 ## Architecture
 
-D&D 3.5 magic item price calculator.
+D&D 3.5 magic item price calculator. SPA React caricata via CDN, nessun build step.
 
-### Core logic — `src/magic_items/`
+### File UI
 
-- **`enums.js`** — Frozen objects where every variant is a `{ value, label, price_base }` triple. `price_base` is the pricing multiplier used in `_calcPrice()`. `byValue(enumObj, val)` looks up a variant by its string `value`.
+- **`pricing.js`** — IIFE, espone `window.MIB_CORE`. Contiene tutti gli enum (`ItemType`, `BodySlot`, `Duration`, `UsageMode`, `ActivMode`, `BonusType`) e la classe `MagicItem`. Ogni variante enum è `{ value, label, price_base }`. `MagicItem` calcola `price` e un array `tokens` strutturato `[{ sym, label, value, op }]` usato per il rendering dell'equazione nel pannello prezzo. È la **fonte di verità** per tutte le formule.
 
-- **`models.js`** — `MagicItem` class. Constructor takes a `fields` object, calls `_validate()`, then `_calcPrice()` which returns `[price, formula, math]` stored as `_price/_formula/_math`. Getters `price`, `priceFormula`, `priceMath` expose them; `txt*` getters return Italian-language display strings. Validation throws a single `Error` whose `.message` is newline-joined error strings.
+- **`app.jsx`** — Tutti i componenti React. `TypePicker` (sidebar sinistra), form per tipo (`FormStats`, `FormCA`, `FormTS`, `FormArmorWeapon`, `FormBonusSpell`, `FormSPW`, `FormMagicEffect`), `PricePanel` (colonna destra sticky). Stato in `App` come `[typeValue, state]`. Cambio tipo → reset a `defaultFor(newType)`. Ogni cambio campo → `useMemo(() => buildItem(...))` ricrea `MagicItem` da `pricing.js`. Espone `window.MIB_App`.
 
-- **`index.js`** — Re-exports everything from `enums.js` and `models.js`.
+- **`styles.css`** — CSS custom properties + layout 3 colonne (`280px | 1fr | 380px`). Varianti via `data-theme`, `data-density`, `data-accent`, `data-typeface` sul `#root`.
 
-### UI — `index.html` + `app.js`
-
-Vanilla JS, no framework. `app.js` loaded as `<script type="module">`. On `ItemType` change, `renderFields()` rebuilds `#fields` and `#extra-fields` with DOM-created inputs. On form submit, `collectFields()` reads the DOM into a plain object and passes it to `new MagicItem(...)`, catching thrown errors to display inline.
-
-### Tests — `tests/test_magic_items.js`
-
-Custom lightweight runner using `node:assert/strict`. `test(name, fn)` catches and reports. `assertThrows(fn)` verifies that a `MagicItem` constructor call throws. No test framework — run directly with `node`.
+- **`index.html`** — Carica React 18 + ReactDOM + Babel standalone da CDN unpkg, poi `pricing.js` e `app.jsx`, poi monta `<window.MIB_App />`.
 
 ### Key invariants
 
-- Each `ItemType` has a strict set of required vs. forbidden fields enforced in `_validate()`. Adding a new item type means updating both `_validate()` and `_calcPrice()`.
-- `body_slot` defaults to `null`; some item types (BONUS_STATS, BONUS_CA, BONUS_TS, MAGIC_EFFECT) require it, others (MAGIC_ARMOR, MAGIC_WEAPON, SCROLL, POTION, WAND, BONUS_SPELL) forbid it.
-- UI and model labels are in Italian.
+- `pricing.js` è IIFE (non ES module) — non usare `import`/`export`. I componenti React in `app.jsx` leggono tutto da `window.MIB_CORE`.
+- Ogni `ItemType` ha campi obbligatori e vietati. Aggiungere un tipo richiede aggiornare `_calcPrice()` in `pricing.js`, `defaultFor()` e il `switch` dei form in `app.jsx`.
+- `body_slot` richiesto da `BONUS_STATS`, `BONUS_CA`, `BONUS_TS`, `MAGIC_EFFECT`; assente negli altri.
+- `BONUS_STATS` accetta solo `bonus` ∈ `{2, 4, 6}`; tutti gli altri bonus `1–5`.
+- I consumabili (SCROLL/POTION/WAND) appaiono nell'UI come voce unica "Consumabile" con segmented interno, ma restano tre `ItemType` distinti in `pricing.js`.
+- Chip `PRICE_BASE` viene spostata sempre in prima posizione nell'equazione visuale (logica in `PricePanel`).

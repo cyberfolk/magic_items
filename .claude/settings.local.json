@@ -7,7 +7,10 @@
       "Bash(Remove-Item \"src\\\\magic_items\\\\enums.py\",\"src\\\\magic_items\\\\models.py\",\"src\\\\magic_items\\\\rules.py\",\"src\\\\magic_items\\\\__init__.py\",\"streamlit_app.py\",\"pytest.ini\",\"requirements.txt\",\"tests\\\\test_magic_items.py\")",
       "Bash(git show *)",
       "Bash(node *)",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Read(//mnt/c/Users/andre/cyberfolk/**)",
+      "Read(//mnt/c/Users/andre/cyberfolk/magic_items/**)"
     ]
   }
 }
