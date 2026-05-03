@@ -22,7 +22,7 @@ No install step — `package.json` only sets `"type": "module"`, no dependencies
 
 ## Architecture
 
-D&D 3.5 magic item price calculator, migrated from Python/Pydantic/Streamlit to vanilla JavaScript ES modules.
+D&D 3.5 magic item price calculator.
 
 ### Core logic — `src/magic_items/`
 

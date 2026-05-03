@@ -38,7 +38,7 @@ test('MAGIC_EFFECT CONTINUOUS: prezzo e descrizioni', () => {
     duration:   Duration.TEN_MIN,
   });
   assert.equal(item.price, 40500);
-  assert.equal(item.priceFormula, 'LIV_SPELL × LIVE_CASTER × ACTIV_MODE × BODY_SLOT × SPELL_DURATION_BASE');
+  assert.equal(item.priceFormula, 'LIV_SPELL × LIV_CASTER × ACTIV_MODE × BODY_SLOT × SPELL_DURATION_BASE');
   assert.equal(item.priceMath, '3 × 5 × 1800 × 1.0 × 1.5');
   assert.equal(item.txtLivSpellAndLivCaster, 'Incantesimo di 3° Livello (LI 5)');
   assert.equal(item.txtUsageMode, 'Effetto Continuo (Durata originale in 10 Minuti)');
@@ -81,6 +81,7 @@ test('BONUS_STATS: bonus valido, descrizioni e prezzo', () => {
     item_type:  ItemType.BONUS_STATS,
     bonus:      4,
     body_slot:  BodySlot.UNUSUAL,
+    bonus_type: BonusType.ENHANCEMENT,
   });
   assert.equal(item.txtBonus,    '+4');
   assert.equal(item.txtBodySlot, 'Insolito');
@@ -103,7 +104,7 @@ test('SCROLL: prezzo e descrizioni', () => {
     liv_caster: 7,
   });
   assert.equal(item.price,        350);
-  assert.equal(item.priceFormula, 'LIV_SPELL × LIVE_CASTER × PRICE_BASE');
+  assert.equal(item.priceFormula, 'LIV_SPELL × LIV_CASTER × PRICE_BASE');
   assert.equal(item.priceMath,    '2 × 7 × 25');
   assert.equal(item.txtBonus,     '');
 });
