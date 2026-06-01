@@ -90,12 +90,12 @@ class MagicItem {
       const btPb  = this.bonus_type.price_base;
       const price = (this.bonus ** 2) * t.price_base * this.body_slot.price_base * btPb;
       const tokens = [
-        { sym: "BONUS²",      label: "Bonus",        value: `${this.bonus}² = ${this.bonus ** 2}` },
-        { sym: "PRICE_BASE",  label: "Base oggetto", value: fmtNum(t.price_base), op: "×" },
-        { sym: "BODY_SLOT",   label: this.body_slot.label,  value: `×${fmtFloat(this.body_slot.price_base)}`, op: "×" },
+        { sym: "BONUS²",     label: "Bonus",        num: String(this.bonus ** 2),        op: undefined },
+        { sym: "PRICE_BASE", label: "Base oggetto", num: fmtNum(t.price_base),            op: "×" },
+        { sym: "BODY_SLOT",  label: "Slot corporeo: " + this.body_slot.label, num: fmtFloat(this.body_slot.price_base), op: "×" },
       ];
       if (t !== ItemType.BONUS_STATS) {
-        tokens.push({ sym: "BONUS_TYPE", label: this.bonus_type.label, value: `×${fmtFloat(btPb)}`, op: "×" });
+        tokens.push({ sym: "BONUS_TYPE", label: "Tipo bonus: " + this.bonus_type.label, num: fmtFloat(btPb), op: "×" });
       }
       return { price: Math.trunc(price), tokens };
     }
@@ -103,8 +103,8 @@ class MagicItem {
     if (t === ItemType.MAGIC_ARMOR || t === ItemType.MAGIC_WEAPON) {
       const price = (this.bonus ** 2) * t.price_base;
       const tokens = [
-        { sym: "BONUS²",     label: "Bonus",        value: `${this.bonus}² = ${this.bonus ** 2}` },
-        { sym: "PRICE_BASE", label: "Base oggetto", value: fmtNum(t.price_base), op: "×" },
+        { sym: "BONUS²",     label: "Bonus",        num: String(this.bonus ** 2),   op: undefined },
+        { sym: "PRICE_BASE", label: "Base oggetto", num: fmtNum(t.price_base),       op: "×" },
       ];
       return { price: Math.trunc(price), tokens };
     }
@@ -113,9 +113,9 @@ class MagicItem {
       if (!this.liv_spell || !this.liv_caster) return { price: 0, tokens: [] };
       const price = this.liv_spell * this.liv_caster * t.price_base;
       const tokens = [
-        { sym: "LIV_SPELL",  label: "Liv. Inc.",       value: String(this.liv_spell) },
-        { sym: "LIV_CASTER", label: "Liv. Inc.tore",   value: String(this.liv_caster), op: "×" },
-        { sym: "PRICE_BASE", label: "Base " + t.label, value: fmtNum(t.price_base) + " mo", op: "×" },
+        { sym: "LIV_SPELL",  label: "Livello incantesimo", num: String(this.liv_spell),         op: undefined },
+        { sym: "LIV_CASTER", label: "Livello incantatore", num: String(this.liv_caster),        op: "×" },
+        { sym: "PRICE_BASE", label: "Base " + t.label,     num: fmtNum(t.price_base),           op: "×" },
       ];
       return { price: Math.trunc(price), tokens };
     }
@@ -124,8 +124,8 @@ class MagicItem {
       if (!this.liv_spell) return { price: 0, tokens: [] };
       const price = (this.liv_spell ** 2) * t.price_base;
       const tokens = [
-        { sym: "LIV_SPELL²", label: "Liv. Incantesimo", value: `${this.liv_spell}² = ${this.liv_spell ** 2}` },
-        { sym: "PRICE_BASE", label: "Base",             value: fmtNum(t.price_base) + " mo", op: "×" },
+        { sym: "LIV_SPELL²", label: "Livello incantesimo", num: String(this.liv_spell ** 2), op: undefined },
+        { sym: "PRICE_BASE", label: "Base oggetto",         num: fmtNum(t.price_base),        op: "×" },
       ];
       return { price: Math.trunc(price), tokens };
     }
@@ -136,24 +136,24 @@ class MagicItem {
 
       let price = this.liv_spell * this.liv_caster * this.activ_mode.price_base * this.body_slot.price_base;
       const tokens = [
-        { sym: "LIV_SPELL",  label: "Liv. Inc.",          value: String(this.liv_spell) },
-        { sym: "LIV_CASTER", label: "Liv. Inc.tore",      value: String(this.liv_caster), op: "×" },
-        { sym: "ACTIV_MODE", label: this.activ_mode.label, value: fmtNum(this.activ_mode.price_base), op: "×" },
-        { sym: "BODY_SLOT",  label: this.body_slot.label,  value: `×${fmtFloat(this.body_slot.price_base)}`, op: "×" },
+        { sym: "LIV_SPELL",  label: "Livello incantesimo",             num: String(this.liv_spell),                       op: undefined },
+        { sym: "LIV_CASTER", label: "Livello incantatore",             num: String(this.liv_caster),                      op: "×" },
+        { sym: "ACTIV_MODE", label: "Attivazione: " + this.activ_mode.label, num: fmtNum(this.activ_mode.price_base),    op: "×" },
+        { sym: "BODY_SLOT",  label: "Slot corporeo: " + this.body_slot.label, num: fmtFloat(this.body_slot.price_base),  op: "×" },
       ];
 
       if (this.usage_mode === UsageMode.FIFTY_CHARGES) {
         price /= 2;
-        tokens.push({ sym: "÷ 2", label: "50 Cariche", value: "÷ 2", op: "" });
+        tokens.push({ sym: "÷2", label: "50 Cariche", num: "÷ 2", op: "÷" });
       }
       if (this.usage_mode === UsageMode.DAILY_CHARGES) {
         const dc = this.daily_charges || 1;
         price = price / (5 / dc);
-        tokens.push({ sym: "÷ (5÷N)", label: `${dc} cariche/giorno`, value: `÷ (5 ÷ ${dc})`, op: "" });
+        tokens.push({ sym: "÷N", label: `${dc} cariche/giorno`, num: `÷ (5÷${dc})`, op: "÷" });
       }
       if (this.usage_mode === UsageMode.CONTINUOUS && this.duration) {
         price *= this.duration.price_base;
-        tokens.push({ sym: "DURATION", label: `Durata: ${this.duration.label}`, value: `×${fmtFloat(this.duration.price_base)}`, op: "×" });
+        tokens.push({ sym: "DURATION", label: "Durata: " + this.duration.label, num: fmtFloat(this.duration.price_base), op: "×" });
       }
 
       return { price: Math.trunc(price), tokens };

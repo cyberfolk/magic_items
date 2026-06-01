@@ -1,6 +1,4 @@
-// Magic Item Builder — UI components (rev. 2)
-// Allineato al core in pricing.js: ItemType, BodySlot {Compatibile/Insolito/Nessuno},
-// ActivMode {Attivato ad uso 2000 / Parola di Comando 1800}, Duration, BonusType, MagicItem.
+// Magic Item Builder — UI components
 
 const { useState, useMemo, useEffect, useRef } = React;
 const C = window.MIB_CORE;
@@ -18,9 +16,9 @@ function Field({ label, hint, children }) {
   );
 }
 
-function Segmented({ value, onChange, options, locked, compact }) {
+function Segmented({ value, onChange, options, locked }) {
   return (
-    <div className={`mib-seg ${locked ? "mib-seg--locked" : ""} ${compact ? "mib-seg--compact" : ""}`} role="radiogroup">
+    <div className={`mib-seg ${locked ? "mib-seg--locked" : ""}`} role="radiogroup">
       {options.map((opt) => {
         const isActive = value === opt.value;
         return (
@@ -36,18 +34,6 @@ function Segmented({ value, onChange, options, locked, compact }) {
           </button>
         );
       })}
-    </div>
-  );
-}
-
-function LockedBadge({ label }) {
-  return (
-    <div className="mib-locked">
-      <svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true">
-        <path d="M3 5V3.5a2.5 2.5 0 0 1 5 0V5" stroke="currentColor" strokeWidth="1.1" fill="none" />
-        <rect x="2" y="5" width="7" height="5" rx="1" stroke="currentColor" strokeWidth="1.1" fill="none" />
-      </svg>
-      <span>{label}</span>
     </div>
   );
 }
@@ -112,19 +98,6 @@ function ChipPicker({ value, onChange, options, prefix = "+" }) {
 
 // ─── Type catalogue ───────────────────────────────────────────────────────
 
-const ITEM_TYPES_LIST = [
-  { v: ItemType.BONUS_STATS,  glyph: "◆", group: "Bonus permanenti" },
-  { v: ItemType.MAGIC_ARMOR,  glyph: "▣", group: "Bonus permanenti" },
-  { v: ItemType.MAGIC_WEAPON, glyph: "▲", group: "Bonus permanenti" },
-  { v: ItemType.BONUS_CA,     glyph: "◇", group: "Bonus permanenti" },
-  { v: ItemType.BONUS_TS,     glyph: "◉", group: "Bonus permanenti" },
-  { v: ItemType.BONUS_SPELL,  glyph: "✦", group: "Effetti incantesimo" },
-  { v: ItemType.SCROLL,       glyph: "⌇", group: "Consumabili", hidden: true },
-  { v: ItemType.POTION,       glyph: "◌", group: "Consumabili", hidden: true },
-  { v: ItemType.WAND,         glyph: "│", group: "Consumabili", hidden: true },
-  { v: ItemType.MAGIC_EFFECT, glyph: "✸", group: "Effetti incantesimo" },
-];
-
 const CONSUMABLE_OPTS = [
   { value: ItemType.SCROLL.value, label: "Pergamena" },
   { value: ItemType.POTION.value, label: "Pozione" },
@@ -132,6 +105,17 @@ const CONSUMABLE_OPTS = [
 ];
 
 const CONSUMABLE_VALUES = new Set(CONSUMABLE_OPTS.map((o) => o.value));
+
+const TYPE_SELECT_OPTS = [
+  { value: ItemType.BONUS_STATS.value,  label: "Bonus di Caratteristica" },
+  { value: ItemType.MAGIC_ARMOR.value,  label: "Armatura Magica" },
+  { value: ItemType.MAGIC_WEAPON.value, label: "Arma Magica" },
+  { value: ItemType.BONUS_CA.value,     label: "Bonus CA" },
+  { value: ItemType.BONUS_TS.value,     label: "Bonus TS" },
+  { value: ItemType.BONUS_SPELL.value,  label: "Incantesimo bonus" },
+  { value: "consumabile",               label: "Consumabile" },
+  { value: ItemType.MAGIC_EFFECT.value, label: "Oggetto Effetto Magico" },
+];
 
 const SLOT_OPTS     = Object.values(BodySlot).map((s) => ({ value: s.value, label: s.label }));
 const DURATION_OPTS = Object.values(Duration).map((d) => ({ value: d.value, label: d.label }));
@@ -149,60 +133,7 @@ const TS_BONUS_OPTS = [
   { value: BonusType.TS_OTHERS.value,     label: "Altri" },
 ];
 
-// ─── Type picker (sidebar) ─────────────────────────────────────────────────
-
-function TypePicker({ value, onChange }) {
-  const groups = ["Bonus permanenti", "Effetti incantesimo", "Consumabili"];
-  const isConsumable = CONSUMABLE_VALUES.has(value);
-  const consumableBase = isConsumable
-    ? ITEM_TYPES_LIST.find((t) => t.v.value === value).v.price_base
-    : ItemType.SCROLL.price_base;
-  return (
-    <div className="mib-types">
-      {groups.map((g) => (
-        <div key={g} className="mib-types__group">
-          <span className="mib-types__group-label" hidden>{g}</span>
-          {ITEM_TYPES_LIST.filter((t) => t.group === g && !t.hidden).map((t) => {
-            const active = t.v.value === value;
-            return (
-              <button
-                key={t.v.value}
-                type="button"
-                className={`mib-type ${active ? "is-active" : ""}`}
-                onClick={() => onChange(t.v.value)}
-                aria-pressed={active}>
-                <span className="mib-type__glyph" aria-hidden="true">{t.glyph}</span>
-                <span className="mib-type__label">{t.v.label}</span>
-                {active && (
-                  <span className="mib-type__base" aria-label={`base ${t.v.price_base} monete d'oro`}>
-                    base {fmt(t.v.price_base)}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-          {g === "Consumabili" && (
-            <button
-              type="button"
-              className={`mib-type ${isConsumable ? "is-active" : ""}`}
-              onClick={() => onChange(isConsumable ? value : ItemType.SCROLL.value)}
-              aria-pressed={isConsumable}>
-              <span className="mib-type__glyph" aria-hidden="true">⌇</span>
-              <span className="mib-type__label">Consumabile</span>
-              {isConsumable && (
-                <span className="mib-type__base" aria-label={`base ${consumableBase} monete d'oro`}>
-                  base {fmt(consumableBase)}
-                </span>
-              )}
-            </button>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── State & form per type ─────────────────────────────────────────────────
+// ─── State defaults per type ───────────────────────────────────────────────
 
 function defaultFor(typeValue) {
   const base = {
@@ -322,14 +253,12 @@ function FormSPW({ s, set, kind, onKindChange }) {
 function FormMagicEffect({ s, set }) {
   return (
     <>
-      <div className="mib-grid2">
-        <Field label="Livello Incantesimo">
-          <Stepper value={s.liv_spell} onChange={(v) => set({ liv_spell: v })} min={1} max={9} suffix="liv" />
-        </Field>
-        <Field label="Livello Incantatore">
-          <Stepper value={s.liv_caster} onChange={(v) => set({ liv_caster: v })} min={1} max={20} suffix="liv" />
-        </Field>
-      </div>
+      <Field label="Livello Incantesimo">
+        <Stepper value={s.liv_spell} onChange={(v) => set({ liv_spell: v })} min={1} max={9} suffix="liv" />
+      </Field>
+      <Field label="Livello Incantatore">
+        <Stepper value={s.liv_caster} onChange={(v) => set({ liv_caster: v })} min={1} max={20} suffix="liv" />
+      </Field>
       <Field label="Slot Corporeo">
         <Segmented value={s.body_slot} onChange={(v) => set({ body_slot: v })} options={SLOT_OPTS} />
       </Field>
@@ -364,11 +293,11 @@ function buildItem(typeValue, s) {
       liv_spell:     s.liv_spell,
       liv_caster:    s.liv_caster,
       daily_charges: s.daily_charges,
-      body_slot:     s.body_slot  ? Object.values(BodySlot).find((x) => x.value === s.body_slot)     : null,
-      usage_mode:    s.usage_mode ? Object.values(UsageMode).find((x) => x.value === s.usage_mode)   : null,
-      activ_mode:    s.activ_mode ? Object.values(ActivMode).find((x) => x.value === s.activ_mode)   : null,
-      duration:      s.duration   ? Object.values(Duration).find((x) => x.value === s.duration)      : null,
-      bonus_type:    s.bonus_type ? Object.values(BonusType).find((x) => x.value === s.bonus_type)   : null,
+      body_slot:     s.body_slot  ? Object.values(BodySlot).find((x) => x.value === s.body_slot)   : null,
+      usage_mode:    s.usage_mode ? Object.values(UsageMode).find((x) => x.value === s.usage_mode) : null,
+      activ_mode:    s.activ_mode ? Object.values(ActivMode).find((x) => x.value === s.activ_mode) : null,
+      duration:      s.duration   ? Object.values(Duration).find((x) => x.value === s.duration)    : null,
+      bonus_type:    s.bonus_type ? Object.values(BonusType).find((x) => x.value === s.bonus_type) : null,
     });
   } catch (e) {
     return null;
@@ -460,24 +389,21 @@ function PricePanel({ item, typeLabel }) {
         <span className="mib-price__eyebrow">Calcolo</span>
         {tokens.length > 0 ? (
           <div className="mib-eq">
-            {(() => {
-              const baseIdx = tokens.findIndex((t) => t.sym === "PRICE_BASE");
-              const ordered = baseIdx > 0
-                ? [{ ...tokens[baseIdx], op: undefined }, { ...tokens[0], op: "×" }, ...tokens.slice(1, baseIdx), ...tokens.slice(baseIdx + 1)]
-                : tokens;
-              return ordered.map((tk, i) => {
-                const pulsing = pulses[tk.sym];
-                return (
-                  <React.Fragment key={tk.sym + i}>
-                    {tk.op && <span className="mib-eq__op">{tk.op}</span>}
+            {tokens.map((tk, i) => {
+              const pulsing = pulses[tk.sym];
+              const showOp = i > 0 && tk.op;
+              return (
+                <React.Fragment key={tk.sym + i}>
+                  {showOp && <div className="mib-eq__sep"><span className="mib-eq__op">{tk.op}</span></div>}
+                  <div className="mib-eq__row">
                     <div className={`mib-eq__chip ${pulsing ? "is-pulse" : ""}`}>
-                      <span className="mib-eq__val">{tk.value}</span>
-                      <span className="mib-eq__lbl">{tk.label}</span>
+                      <span className="mib-eq__num">{tk.num}</span>
                     </div>
-                  </React.Fragment>
-                );
-              });
-            })()}
+                    <span className="mib-eq__lbl">{tk.label}</span>
+                  </div>
+                </React.Fragment>
+              );
+            })}
           </div>
         ) : (
           <p className="mib-price__empty">Compila i campi per vedere la formula.</p>
@@ -495,8 +421,15 @@ function App() {
   const set = (patch) => setState((s) => ({ ...s, ...patch }));
 
   const item = useMemo(() => buildItem(typeValue, state), [typeValue, state]);
-  const typeMeta = ITEM_TYPES_LIST.find((t) => t.v.value === typeValue);
-  const typeLabel = typeMeta?.v.label || "—";
+  const typeIt = Object.values(ItemType).find((x) => x.value === typeValue);
+  const typeLabel = typeIt?.label || "—";
+
+  const selectValue = CONSUMABLE_VALUES.has(typeValue) ? "consumabile" : typeValue;
+  const handleTypeChange = (v) => {
+    const newType = v === "consumabile" ? ItemType.SCROLL.value : v;
+    setTypeValue(newType);
+    setState(defaultFor(newType));
+  };
 
   let form = null;
   switch (typeValue) {
@@ -559,32 +492,16 @@ function App() {
       </header>
 
       <main className="mib-main">
-        <section className="mib-col mib-col--types" aria-label="Tipo di oggetto">
-          <h2 className="mib-eyebrow">01 · Tipo di oggetto</h2>
-          <TypePicker
-            value={typeValue}
-            onChange={(v) => { setTypeValue(v); setState(defaultFor(v)); }}
-          />
-        </section>
-
-        <section className="mib-col mib-col--form" aria-label="Parametri">
-          <h2 className="mib-eyebrow">02 · Parametri</h2>
-          <div className="mib-formcard">
-            <header className="mib-formcard__head">
-              <span className="mib-formcard__glyph" aria-hidden="true">{typeMeta?.glyph}</span>
-              <div className="mib-formcard__titles">
-                <span className="mib-formcard__title">{typeLabel}</span>
-                <span className="mib-formcard__sub">{typeMeta?.group}</span>
-              </div>
-            </header>
-            <div className="mib-formcard__body">{form}</div>
+        <div className="mib-formcard">
+          <div className="mib-formcard__body">
+            <Field label="Tipo di oggetto">
+              <Select value={selectValue} onChange={handleTypeChange} options={TYPE_SELECT_OPTS} />
+            </Field>
+            {form}
           </div>
-        </section>
+        </div>
 
-        <section className="mib-col mib-col--price" aria-label="Risultato">
-          <h2 className="mib-eyebrow">03 · Risultato</h2>
-          <PricePanel item={item} typeLabel={typeLabel} />
-        </section>
+        <PricePanel item={item} typeLabel={typeLabel} />
       </main>
 
       <footer className="mib-footer">
