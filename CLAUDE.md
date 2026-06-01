@@ -1,47 +1,47 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guida per Claude Code (claude.ai/code) su questo repository.
 
 ## Lingua
 
 Rispondi sempre in italiano.
 
-## Commands
+## Comandi
 
 ```bash
-# Run all tests
+# Esegui tutti i test
 node tests/test_magic_items.js
 
-# Serve the UI (ES modules block file:// protocol — a static server is required)
+# Avvia il server UI (i moduli ES bloccano il protocollo file:// — serve un server statico)
 npx serve .
-# or
+# oppure
 python -m http.server
 ```
 
-No install step — `package.json` only sets `"type": "module"`, no dependencies.
+Nessuno step di installazione — `package.json` imposta solo `"type": "module"`, nessuna dipendenza.
 
-## Architecture
+## Architettura
 
-D&D 3.5 magic item price calculator.
+Calcolatore del prezzo degli oggetti magici per D&D 3.5.
 
-### Core logic — `src/magic_items/`
+### Logica core — `src/magic_items/`
 
-- **`enums.js`** — Frozen objects where every variant is a `{ value, label, price_base }` triple. `price_base` is the pricing multiplier used in `_calcPrice()`. `byValue(enumObj, val)` looks up a variant by its string `value`.
+- **`enums.js`** — Oggetti frozen dove ogni variante è una tripla `{ value, label, price_base }`. `price_base` è il moltiplicatore di prezzo usato in `_calcPrice()`. `byValue(enumObj, val)` cerca una variante tramite il suo `value` stringa.
 
-- **`models.js`** — `MagicItem` class. Constructor takes a `fields` object, calls `_validate()`, then `_calcPrice()` which returns `[price, formula, math]` stored as `_price/_formula/_math`. Getters `price`, `priceFormula`, `priceMath` expose them; `txt*` getters return Italian-language display strings. Validation throws a single `Error` whose `.message` is newline-joined error strings.
+- **`models.js`** — Classe `MagicItem`. Il costruttore riceve un oggetto `fields`, chiama `_validate()`, poi `_calcPrice()` che restituisce `[price, formula, math]` salvati come `_price/_formula/_math`. I getter `price`, `priceFormula`, `priceMath` li espongono; i getter `txt*` restituiscono stringhe di visualizzazione in italiano. La validazione lancia un singolo `Error` il cui `.message` è una stringa con errori uniti da `\n`.
 
-- **`index.js`** — Re-exports everything from `enums.js` and `models.js`.
+- **`index.js`** — Ri-esporta tutto da `enums.js` e `models.js`.
 
 ### UI — `index.html` + `app.js`
 
-Vanilla JS, no framework. `app.js` loaded as `<script type="module">`. On `ItemType` change, `renderFields()` rebuilds `#fields` and `#extra-fields` with DOM-created inputs. On form submit, `collectFields()` reads the DOM into a plain object and passes it to `new MagicItem(...)`, catching thrown errors to display inline.
+Vanilla JS, nessun framework. `app.js` caricato come `<script type="module">`. Al cambio di `ItemType`, `renderFields()` ricostruisce `#fields` e `#extra-fields` con input creati via DOM. Al submit del form, `collectFields()` legge il DOM in un oggetto plain e lo passa a `new MagicItem(...)`, catturando gli errori per mostrarli inline.
 
-### Tests — `tests/test_magic_items.js`
+### Test — `tests/test_magic_items.js`
 
-Custom lightweight runner using `node:assert/strict`. `test(name, fn)` catches and reports. `assertThrows(fn)` verifies that a `MagicItem` constructor call throws. No test framework — run directly with `node`.
+Runner leggero custom con `node:assert/strict`. `test(name, fn)` cattura e riporta. `assertThrows(fn)` verifica che il costruttore di `MagicItem` lanci. Nessun framework — eseguire direttamente con `node`.
 
-### Key invariants
+### Invarianti principali
 
-- Each `ItemType` has a strict set of required vs. forbidden fields enforced in `_validate()`. Adding a new item type means updating both `_validate()` and `_calcPrice()`.
-- `body_slot` defaults to `null`; some item types (BONUS_STATS, BONUS_CA, BONUS_TS, MAGIC_EFFECT) require it, others (MAGIC_ARMOR, MAGIC_WEAPON, SCROLL, POTION, WAND, BONUS_SPELL) forbid it.
-- UI and model labels are in Italian.
+- Ogni `ItemType` ha un insieme preciso di campi obbligatori vs. vietati, controllato in `_validate()`. Aggiungere un nuovo tipo richiede di aggiornare sia `_validate()` che `_calcPrice()`.
+- `body_slot` ha default `null`; alcuni tipi (BONUS_STATS, BONUS_CA, BONUS_TS, MAGIC_EFFECT) lo richiedono, altri (MAGIC_ARMOR, MAGIC_WEAPON, SCROLL, POTION, WAND, BONUS_SPELL) lo vietano.
+- Label di UI e model sono in italiano.
