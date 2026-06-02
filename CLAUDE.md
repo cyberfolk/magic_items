@@ -18,8 +18,6 @@ Nessuno step di installazione — `package.json` imposta solo `"type": "module"`
 
 ## Architettura
 
-Calcolatore del prezzo degli oggetti magici per D&D 3.5.
-
 ### Logica core — `src/magic_items/`
 
 - **`enums.js`** — Oggetti frozen dove ogni variante è una tripla `{ value, label, price_base }`. `price_base` è il moltiplicatore di prezzo usato in `_calcPrice()`. `byValue(enumObj, val)` cerca una variante tramite il suo `value` stringa.
