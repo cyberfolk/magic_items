@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guida per Claude Code (claude.ai/code) su questo repository.
+Calcolatore del prezzo degli oggetti magici per D&D 3.5.
 
 ## Comandi
 
