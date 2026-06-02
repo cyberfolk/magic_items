@@ -4,7 +4,7 @@ Calcolatore del prezzo degli oggetti magici per D&D 3.5.
 
 ## Comandi
 
-```bash
+```powershell
 # Esegui tutti i test
 node tests/test_magic_items.js
 
