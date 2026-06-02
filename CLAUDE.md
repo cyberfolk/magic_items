@@ -2,10 +2,6 @@
 
 Guida per Claude Code (claude.ai/code) su questo repository.
 
-## Lingua
-
-Rispondi sempre in italiano.
-
 ## Comandi
 
 ```bash
