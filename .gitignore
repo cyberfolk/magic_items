@@ -5,6 +5,7 @@
 __pycache__
 .venv/
 .vscode/
+.claude/
 scratch/
 src/main.py
 *.idea/*
