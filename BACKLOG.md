@@ -2,8 +2,7 @@
 
 Il lavoro da fare della repo. Fatta → si cancella. Voci separate da `---`.
 
-Ordinato per **tipo di azione**, non per tema: A blocca il resto, B parte subito su un agente, C le
-fa Claude in Chrome, D va progettato prima del codice, E aspetta dati che non ci sono, F sta fuori
+Ordinato per **tipo di azione**, non per tema: A blocca il resto, B parte subito su un agente, C sono prove a mano, D va progettato prima del codice, E aspetta dati che non ci sono, F sta fuori
 da qui, G l'ha rimandato l'utente. Gli id `Snnn` restano: dicono il tema, il gruppo dice cosa serve
 per farla. Un gruppo vuoto non ha intestazione.
 
